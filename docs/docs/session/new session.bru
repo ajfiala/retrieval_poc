@@ -1,0 +1,17 @@
+meta {
+  name: new session
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/session
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_id": "98320186-6202-40a6-a54a-52f68998dad6"
+  }
+}

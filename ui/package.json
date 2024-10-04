@@ -1,0 +1,45 @@
+{
+    "name": "react-chat-app",
+    "version": "1.0.0",
+    "description": "A simple React chat application.",
+    "main": "index.js",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "vite preview"
+    
+    },
+    "dependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-markdown": "^9.0.1",
+        "react-router-dom": "^6.26.1"    
+    },
+    "devDependencies": {
+        "vite": "^5.3.4",
+        "vite-plugin-svgr": "^4.2.0",
+ "@vitejs/plugin-react-swc": "^3.5.0"
+
+
+    },
+    "eslintConfig": {
+      "extends": [
+        "react-app",
+        "react-app/jest"
+      ]
+    },
+    "browserslist": {
+      "production": [
+        ">0.2%",
+        "not dead",
+        "not op_mini all"
+      ],
+      "development": [
+        "last 1 chrome version",
+        "last 1 firefox version",
+        "last 1 safari version"
+      ]
+    }
+  }
+  

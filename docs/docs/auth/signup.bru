@@ -1,0 +1,29 @@
+meta {
+  name: signup
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Pete"
+  }
+}
+
+script:post-response {
+  if (res.headers['access-token']) {
+    bru.setEnvVar('token', res.headers['access-token']);
+  } else if (res.cookies['access-token']) {
+    // If not found in headers, try to get it from cookies
+    bru.setEnvVar('token', res.cookies['access-token']);
+  } else {
+    // Token not found in both header and cookies
+    console.error('Token not found in response headers or cookies');
+  }
+}
