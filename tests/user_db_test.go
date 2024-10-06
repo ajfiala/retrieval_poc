@@ -51,7 +51,7 @@ func TestUserTableGateway(t *testing.T) {
 
     // Test GetUser
     t.Run("GetUser", func(t *testing.T) {
-        user, err := userGateway.GetUser(ctx, testUser.UserID.String())
+        user, err := userGateway.GetUser(ctx, testUser.UserID)
         if err != nil {
             t.Fatalf("GetUser failed: %v", err)
         }
@@ -65,7 +65,7 @@ func TestUserTableGateway(t *testing.T) {
 
     // Test DeleteUser
     t.Run("DeleteUser", func(t *testing.T) {
-        success, err := userGateway.DeleteUser(ctx, testUser.UserID.String())
+        success, err := userGateway.DeleteUser(ctx, testUser.UserID)
         if err != nil {
             t.Fatalf("DeleteUser failed: %v", err)
         }
@@ -74,7 +74,7 @@ func TestUserTableGateway(t *testing.T) {
         }
 
         // Verify the user no longer exists
-        _, err = userGateway.GetUser(ctx, testUser.UserID.String())
+        _, err = userGateway.GetUser(ctx, testUser.UserID)
         if err == nil {
             t.Fatalf("Expected error when fetching deleted user, got nil")
         }

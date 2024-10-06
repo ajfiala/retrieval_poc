@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"rag-demo/types"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -65,4 +64,40 @@ func (k *KbaseTableGatewayImpl) ListKbases(ctx context.Context) (types.KbaseList
 	}
 
 	return types.KbaseList{Kbases: kbases}, nil
+}
+
+// DeleteKbase deletes a knowledge base from the kbase table of the Postgres db and the associated embeddings
+func (k *KbaseTableGatewayImpl) DeleteKbase(ctx context.Context, kbaseId uuid.UUID) (bool, error) {
+	tx, err := k.Pool.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	// first, check if it exists 
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM kbase WHERE uuid = $1)", kbaseId).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, nil
+	}
+
+	_, err = tx.Exec(ctx, "DELETE FROM kbase_embeddings WHERE kbase_id = $1", kbaseId)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.Exec(ctx, "DELETE FROM kbase WHERE uuid = $1", kbaseId)
+	if err != nil {
+		return false, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

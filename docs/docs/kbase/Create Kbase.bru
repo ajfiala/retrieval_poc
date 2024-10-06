@@ -1,0 +1,18 @@
+meta {
+  name: Create Kbase
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/kbase
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "insurance",
+    "description": "kbase for insurance assistant"
+  }
+}

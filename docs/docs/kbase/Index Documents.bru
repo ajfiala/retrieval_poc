@@ -1,0 +1,16 @@
+meta {
+  name: Index Documents
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{server}}/kbase/index
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  : @file()
+  kbase_id: 
+}

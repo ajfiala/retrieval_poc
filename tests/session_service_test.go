@@ -3,11 +3,11 @@ package tests
 import (
     "context"
     "testing"
-
+	"sync"
     "rag-demo/pkg/db"
     "rag-demo/pkg/message"
     "rag-demo/types"
-
+	"fmt"
     "github.com/google/uuid"
     "github.com/jackc/pgx/v5/pgxpool"
     "github.com/joho/godotenv"
@@ -54,12 +54,26 @@ func TestSessionService_CreateSession(t *testing.T) {
 	}
 
     // Create a new session
-    session, err := sessionService.CreateSession(ctx, testUser.UserID)
+	resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+    sessionService.CreateSession(ctx, testUser.UserID, resultCh, wg)
+
+	wg.Wait()             // Wait for the goroutine to finish
+	result := <-resultCh  // Read the result from the channel
+
+	fmt.Println("Result: ", result)
+	assert.True(t, result.Success, "Result should be successful")
 
     assert.NoError(t, err, "CreateSession should not return an error")
-    assert.NotNil(t, session, "Session should not be nil")
-    assert.Equal(t, testUser.UserID, session.UserID, "UserID should match")
-    assert.NotEqual(t, uuid.Nil, session.ID, "Session ID should not be nil")
+	c := types.Session{
+		ID: result.Data.(types.Session).ID,
+		UserID: result.Data.(types.Session).UserID,
+	}
+    assert.NotNil(t, c, "Session should not be nil")
+    assert.Equal(t, testUser.UserID, c.UserID, "UserID should match")
+    assert.NotEqual(t, uuid.Nil, c.ID, "Session ID should not be nil")
 
 }
 
@@ -92,17 +106,41 @@ func TestSessionService_GetSession(t *testing.T) {
 	}
 
 	// Create a new session
-	session, err := sessionService.CreateSession(ctx, testUser.UserID)
-	if err != nil {
-		t.Fatalf("CreateSession failed: %v", err)
-	}
+	resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
+	sessionService.CreateSession(ctx, testUser.UserID, resultCh, wg)
+
+	wg.Wait()             // Wait for the goroutine to finish
+	result := <-resultCh  // Read the result from the channel
+
+	assert.True(t, result.Success, "Result should be successful")
+	newSession := types.Session{
+		ID: result.Data.(types.Session).ID,
+		UserID: result.Data.(types.Session).UserID,
+	}
+	
+	resultCh = make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	wg = &sync.WaitGroup{}
+	wg.Add(1)
 	// Get the session
-	retrievedSession, err := sessionService.GetSession(ctx, session.ID)
+	sessionService.GetSession(ctx, newSession.ID, resultCh, wg)
 	if err != nil {
 		t.Fatalf("GetSession failed: %v", err)
 	}
 
-	assert.Equal(t, session.ID, retrievedSession.ID, "Session ID should match")
-	assert.Equal(t, session.UserID, retrievedSession.UserID, "UserID should match")
+	wg.Wait()             // Wait for the goroutine to finish
+
+	result = <-resultCh  // Read the result from the channel
+	
+	assert.True(t, result.Success, "Result should be successful")
+
+	retrievedSession := types.Session{
+		ID: result.Data.(types.Session).ID,
+		UserID: result.Data.(types.Session).UserID,
+	}
+
+	assert.Equal(t, newSession.ID, retrievedSession.ID, "Session ID should match")
+	assert.Equal(t, newSession.UserID, retrievedSession.UserID, "UserID should match")
 }

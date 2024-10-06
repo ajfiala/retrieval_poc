@@ -13,6 +13,11 @@ type Kbase struct {
     Description   string            `json:"description"`    // Model used by the assistant
 }
 
+type NewKbaseRequest struct {
+    Name        string `json:"name"`
+    Description string `json:"description"`
+}
+
 type KbaseEmbedding struct {
     ID        int                    `json:"id"`
     UUID      uuid.UUID              `json:"uuid"`
@@ -32,6 +37,7 @@ type KbaseTableGateway interface {
 	CreateKbase(ctx context.Context, kbase Kbase) (bool, error)
 	GetKbase(ctx context.Context, kbaseId uuid.UUID) (Kbase, error)
 	UpdateKbase(ctx context.Context, kbase Kbase) (bool, error)
+    DeleteKbase(ctx context.Context, kbaseId uuid.UUID) (bool, error)
 	ListKbases(ctx context.Context) (KbaseList, error)
 }
 
