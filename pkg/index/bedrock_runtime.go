@@ -62,3 +62,5 @@ func (b *BedrockRuntimeService) GetEmbeddings(ctx context.Context, doctext types
 
 	return output, nil
 }
+
+
