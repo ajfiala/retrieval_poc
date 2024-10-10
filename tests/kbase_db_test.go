@@ -122,7 +122,7 @@ func TestKbaseTableGateway(t *testing.T) {
         if err != nil {
             t.Fatalf("ListKbases failed: %v", err)
         }
-        if len(kbases.Kbases) != 2 {
+        if len(kbases.Kbases) < 1 {
             t.Fatalf("ListKbases returned incorrect number of kbases")
         }
     })

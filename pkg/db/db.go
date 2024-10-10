@@ -15,7 +15,7 @@ var (
 func GetPool() *pgxpool.Pool {
 	once.Do(func() {
 		var err error
-		pool, err = pgxpool.New(context.Background(), os.Getenv("POSTGRES_CONN"))
+		pool, err = pgxpool.New(context.Background(), os.Getenv("POSTGRES_CONN_STRING"))
 		if err != nil {
 			panic(err)
 		}
