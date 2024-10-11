@@ -40,21 +40,17 @@ func TestEmbeddingOrchestrator(t *testing.T) {
 	assert.Nil(t, err, "Error should be nil")
 	assert.NotNil(t, result, "Results should not be nil")
 
-	// fmt.Println("Results: ", result)
-
-
 
 	bedrockService, err := index.NewBedrockRuntimeService()
     if err != nil {
         t.Fatalf("Error initializing Bedrock service: %v", err)
     }
 
-    // Assume you have a function to get your database pool
+
     dbPool := db.GetPool()
     dbService := db.NewKbaseEmbeddingsTableGateway(dbPool)
     kbaseDbService := db.NewKbaseTableGateway(dbPool)
 
-	// Create a test kbase
 	testKbase := types.Kbase{
 		ID:          uuid.New(),
 		Name:        "Test Kbase23",
@@ -63,13 +59,12 @@ func TestEmbeddingOrchestrator(t *testing.T) {
 
 	// Register cleanup for testKbase and its embeddings
 	defer func() {
-		// First, delete from kbase_embeddings
 		_, err := dbPool.Exec(context.Background(), "DELETE FROM kbase_embeddings WHERE kbase_id = $1", testKbase.ID)
 		if err != nil {
 			t.Logf("Failed to delete kbase_embeddings data: %v", err)
 		}
 
-		// Then, delete from kbase
+
 		_, err = dbPool.Exec(context.Background(), "DELETE FROM kbase WHERE uuid = $1", testKbase.ID)
 		if err != nil {
 			t.Logf("Failed to delete kbase data: %v", err)
@@ -94,5 +89,4 @@ func TestEmbeddingOrchestrator(t *testing.T) {
 	}
 
 
-	// fmt.Printf("Results: %+v\n", result)
 }

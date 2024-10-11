@@ -15,8 +15,7 @@ import (
 func init() {
     // Load environment variables from .env file if present
     if err := godotenv.Load("../.env"); err != nil {
-        // Handle error if .env file is not found
-        // For testing, we can set default environment variables
+
 		fmt.Printf("Error loading .env file")
     }
 }
@@ -32,13 +31,11 @@ func TestUserTableGateway(t *testing.T) {
 
     userGateway := db.NewUserTableGateway(pool)
 
-    // Test data
     testUser := types.User{
         UserID: uuid.New(),
         Name:   "Test User",
     }
 
-    // Test CreateUser
     t.Run("CreateUser", func(t *testing.T) {
         success, err := userGateway.CreateUser(ctx, testUser)
         if err != nil {
@@ -49,7 +46,6 @@ func TestUserTableGateway(t *testing.T) {
         }
     })
 
-    // Test GetUser
     t.Run("GetUser", func(t *testing.T) {
         user, err := userGateway.GetUser(ctx, testUser.UserID)
         if err != nil {
@@ -63,7 +59,6 @@ func TestUserTableGateway(t *testing.T) {
         }
     })
 
-    // Test DeleteUser
     t.Run("DeleteUser", func(t *testing.T) {
         success, err := userGateway.DeleteUser(ctx, testUser.UserID)
         if err != nil {
@@ -73,7 +68,6 @@ func TestUserTableGateway(t *testing.T) {
             t.Fatalf("DeleteUser returned false")
         }
 
-        // Verify the user no longer exists
         _, err = userGateway.GetUser(ctx, testUser.UserID)
         if err == nil {
             t.Fatalf("Expected error when fetching deleted user, got nil")

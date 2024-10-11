@@ -23,7 +23,7 @@ func HandleCreateKbase(kbaseService kbase.KbaseService) http.HandlerFunc {
 			return
 		}
 		
-		resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+		resultCh := make(types.ResultChannel, 1) 
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
 
@@ -33,11 +33,11 @@ func HandleCreateKbase(kbaseService kbase.KbaseService) http.HandlerFunc {
 			Description: newKbaseReq.Description,
 		}
 
-		// Call CreateKbase with resultCh and wg
+	
 		go kbaseService.CreateKbase(r.Context(), kb, resultCh, wg)
 
-		wg.Wait()             // Wait for the goroutine to finish
-		result := <-resultCh  // Read the result from the channel
+		wg.Wait()             
+		result := <-resultCh 
 
 
 		if result.Success {
@@ -57,14 +57,14 @@ func HandleCreateKbase(kbaseService kbase.KbaseService) http.HandlerFunc {
 
 func HandleListKbases(kbaseService kbase.KbaseService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+		resultCh := make(types.ResultChannel, 1) 
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
 
 		go kbaseService.ListKbases(r.Context(), resultCh, wg)
 
-		wg.Wait()             // Wait for the goroutine to finish
-		result := <-resultCh  // Read the result from the channel
+		wg.Wait()            
+		result := <-resultCh 
 
 		fmt.Println("Result: ", result)
 
@@ -100,14 +100,14 @@ func HandleDeleteKbase(kbaseService kbase.KbaseService) http.HandlerFunc {
 			return
 		}
 
-		resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+		resultCh := make(types.ResultChannel, 1) 
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
 
 		go kbaseService.DeleteKbase(r.Context(), kbID, resultCh, wg)
 
-		wg.Wait()             // Wait for the goroutine to finish
-		result := <-resultCh  // Read the result from the channel
+		wg.Wait()             
+		result := <-resultCh 
 
 		fmt.Println("HandleDeleteKbase result: ", result)
 
@@ -116,7 +116,7 @@ func HandleDeleteKbase(kbaseService kbase.KbaseService) http.HandlerFunc {
             w.WriteHeader(http.StatusOK)
             w.Write([]byte("Kbase deleted successfully"))
         } else if result.Error == nil {
-            // This handles the case where the kbase doesn't exist
+           
             http.Error(w, "kbase not found", http.StatusNotFound)
         } else {
             http.Error(w, "error deleting kbase", http.StatusInternalServerError)

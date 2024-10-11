@@ -1,11 +1,19 @@
-# lil-rag-go
+# RAG demo
 
-postgresql://myuser:mypassword@localhost:5432/goragdb
+This is a demo RAG server with a simple UI which shows how AWS Bedrock and Postgres may be used to create RAG applications
 
-# AWS Bedrock docs 
 
-https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-runtime_example_bedrock-runtime_InvokeModel_AnthropicClaude_section.html
+# tests
 
-https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/bedrockruntime#Client.InvokeModel
+To run the tests, use 
 
-https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/textract#Client.StartDocumentTextDetection
+```
+    go test ./tests/
+```
+
+# run the app 
+For local testing, run 
+
+```
+    go run main.go
+```

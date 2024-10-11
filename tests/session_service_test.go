@@ -30,7 +30,6 @@ func TestSessionService_CreateSession(t *testing.T) {
     dbPool := setupTestSessionDB(t)
     defer dbPool.Close()
 
-    // Load environment variables
     godotenv.Load("../.env")
 
     sessionGateway := db.NewSessionTableGateway(dbPool)
@@ -38,13 +37,11 @@ func TestSessionService_CreateSession(t *testing.T) {
 
     userGateway := db.NewUserTableGateway(dbPool)
 
-    // Test data
     testUser := types.User{
         UserID: uuid.New(),
         Name:   "Don Pizza",
     }
 
-    // Create User to prepare for session test
 	success, err := userGateway.CreateUser(ctx, testUser)
 	if err != nil {
 		t.Fatalf("CreateUser failed: %v", err)
@@ -53,15 +50,14 @@ func TestSessionService_CreateSession(t *testing.T) {
 		t.Fatalf("CreateUser returned false")
 	}
 
-    // Create a new session
-	resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	resultCh := make(types.ResultChannel, 1) 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
     sessionService.CreateSession(ctx, testUser.UserID, resultCh, wg)
 
-	wg.Wait()             // Wait for the goroutine to finish
-	result := <-resultCh  // Read the result from the channel
+	wg.Wait()           
+	result := <-resultCh 
 
 	fmt.Println("Result: ", result)
 	assert.True(t, result.Success, "Result should be successful")
@@ -82,7 +78,6 @@ func TestSessionService_GetSession(t *testing.T) {
 	dbPool := setupTestSessionDB(t)
 	defer dbPool.Close()
 
-	// Load environment variables
 	godotenv.Load("../.env")
 
 	sessionGateway := db.NewSessionTableGateway(dbPool)
@@ -90,13 +85,12 @@ func TestSessionService_GetSession(t *testing.T) {
 
 	userGateway := db.NewUserTableGateway(dbPool)
 
-	// Test data
 	testUser := types.User{
 		UserID: uuid.New(),
 		Name:   "Don Pizza",
 	}
 
-	// Create User to prepare for session test
+
 	success, err := userGateway.CreateUser(ctx, testUser)
 	if err != nil {
 		t.Fatalf("CreateUser failed: %v", err)
@@ -105,15 +99,14 @@ func TestSessionService_GetSession(t *testing.T) {
 		t.Fatalf("CreateUser returned false")
 	}
 
-	// Create a new session
-	resultCh := make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	resultCh := make(types.ResultChannel, 1) 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	sessionService.CreateSession(ctx, testUser.UserID, resultCh, wg)
 
-	wg.Wait()             // Wait for the goroutine to finish
-	result := <-resultCh  // Read the result from the channel
+	wg.Wait()            
+	result := <-resultCh  
 
 	assert.True(t, result.Success, "Result should be successful")
 	newSession := types.Session{
@@ -121,7 +114,7 @@ func TestSessionService_GetSession(t *testing.T) {
 		UserID: result.Data.(types.Session).UserID,
 	}
 	
-	resultCh = make(types.ResultChannel, 1) // Buffered channel to prevent deadlock
+	resultCh = make(types.ResultChannel, 1) 
 	wg = &sync.WaitGroup{}
 	wg.Add(1)
 	// Get the session
@@ -130,9 +123,9 @@ func TestSessionService_GetSession(t *testing.T) {
 		t.Fatalf("GetSession failed: %v", err)
 	}
 
-	wg.Wait()             // Wait for the goroutine to finish
+	wg.Wait()       
 
-	result = <-resultCh  // Read the result from the channel
+	result = <-resultCh 
 	
 	assert.True(t, result.Success, "Result should be successful")
 

@@ -41,34 +41,28 @@ func TestCreateSessionHandler(t *testing.T) {
         t.Fatalf("Failed to create test user: %v", err)
     }
 
-    // Prepare a new session request
     newSessionRequest := types.NewSessionRequest{
         UserID: newUser.UserID,
     }
 
-    // Encode the request as JSON
     body, err := json.Marshal(newSessionRequest)
     if err != nil {
         t.Fatalf("Failed to marshal new session request: %v", err)
     }
 
-    // Create a new HTTP request
     req, err := http.NewRequest("POST", "/api/v1/session", bytes.NewReader(body))
     if err != nil {
         t.Fatal(err)
     }
     req.Header.Set("Content-Type", "application/json")
 
-    // Record the response
     rr := httptest.NewRecorder()
     router.ServeHTTP(rr, req)
 
-    // Check the status code
     if status := rr.Code; status != http.StatusOK {
         t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
     }
 
-    // Decode the response body
     var session types.Session
     err = json.NewDecoder(rr.Body).Decode(&session)
     if err != nil {
@@ -80,14 +74,8 @@ func TestCreateSessionHandler(t *testing.T) {
         t.Errorf("Session has incorrect UserID: got %v, want %v", session.UserID, newUser.UserID)
     }
 
-    // Clean up: delete the created session and user
-    // _, err = sessionGateway.DeleteSession(context.Background(), session.SessionID)
-    // if err != nil {
-    //     t.Errorf("Failed to delete test session: %v", err)
-    // }
-
-    // _, err = userGateway.DeleteUser(context.Background(), newUser.UserID)
-    // if err != nil {
-    //     t.Errorf("Failed to delete test user: %v", err)
-    // }
+    _, err = userGateway.DeleteUser(context.Background(), newUser.UserID)
+    if err != nil {
+        t.Errorf("Failed to delete test user: %v", err)
+    }
 }

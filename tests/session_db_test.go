@@ -38,7 +38,6 @@ func TestSessionTableGateway(t *testing.T) {
 
     userGateway := db.NewUserTableGateway(pool)
 
-    // Test data
     testUser := types.User{
         UserID: uuid.New(),
         Name:   "Don Pizza",
@@ -49,7 +48,6 @@ func TestSessionTableGateway(t *testing.T) {
 		UserID: testUser.UserID,
 	}
 
-    // Create User to prepare for session test
 	success, err := userGateway.CreateUser(ctx, testUser)
 	if err != nil {
 		t.Fatalf("CreateUser failed: %v", err)

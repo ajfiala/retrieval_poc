@@ -35,7 +35,6 @@ func HandleCreateUser(authService auth.AuthService) http.HandlerFunc {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
-			// make jwt token
 			token, err := authService.GenerateJWT(r.Context(), user)
 			if err != nil {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -46,13 +45,12 @@ func HandleCreateUser(authService auth.AuthService) http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("access-token", "Bearer "+ token)
 
-			// Set the token as a cookie
             http.SetCookie(w, &http.Cookie{
                 Name:     "access-token",
                 Value:    token,
                 Path:     "/",
                 HttpOnly: true,
-                Secure:   true, // Set to true if your site uses HTTPS
+                Secure:   true, 
                 SameSite: http.SameSiteLaxMode,
             })
 
@@ -71,14 +69,12 @@ func HandleGetUser(authService auth.AuthService) http.HandlerFunc {
 			return
 		}
 
-		// Validate the user_id
 		parsedUserID, err := uuid.Parse(userID)
 		if err != nil {
 			http.Error(w, "Invalid user_id", http.StatusBadRequest)
 			return
 		}
 
-		// userID is already validated and parsed
 
 		resultCh := make(types.ResultChannel)
 		wg := &sync.WaitGroup{}
@@ -112,21 +108,18 @@ func HandleValidateUser(authService auth.AuthService) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var token string
 
-        // First, try to get the token from the "access-token" header
         token, err := ExtractAccessToken(r) 
 		if err != nil {
 			http.Error(w, "Invalid access-token", http.StatusUnauthorized)
 			return
 		}
 
-        // Validate the token
         user, err := authService.ValidateJWT(r.Context(), token)
         if err != nil {
             http.Error(w, "Invalid access-token", http.StatusUnauthorized)
             return
         }
 
-        // Token is valid; return user info as JSON
         w.Header().Set("Content-Type", "application/json")
         json.NewEncoder(w).Encode(user)
     }

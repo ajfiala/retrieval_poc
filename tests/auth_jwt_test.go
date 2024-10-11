@@ -26,7 +26,6 @@ func TestGenerateJWT(t *testing.T) {
     dbPool := setupTestDB(t)
     defer dbPool.Close()
 
-    // Load environment variables
     godotenv.Load("../.env")
 
     userGateway := db.NewUserTableGateway(dbPool)

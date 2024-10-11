@@ -3,16 +3,11 @@ package tests
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	// "encoding/json"
+	
 	"context"
-	// "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+
 	"rag-demo/pkg/index"
-	// "rag-demo/pkg/db"
-	// "rag-demo/pkg/kbase"
-	// "github.com/lib/pq"
-	// "github.com/google/uuid"
-	// "sync"
-	// "rag-demo/types"
+
 	"fmt"
 )
 
