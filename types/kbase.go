@@ -2,7 +2,8 @@ package types
 
 import (
     "github.com/google/uuid"
-	"github.com/lib/pq"
+	// "github.com/lib/pq"
+    "github.com/pgvector/pgvector-go"
 	"context"
 )
 
@@ -18,13 +19,14 @@ type NewKbaseRequest struct {
     Description string `json:"description"`
 }
 
+
 type KbaseEmbedding struct {
     ID        int                    `json:"id"`
     UUID      uuid.UUID              `json:"uuid"`
     KbaseID   uuid.UUID              `json:"kbase_id"`
     ChunkID   int                    `json:"chunk_id"`
     Content   string                 `json:"content"`
-    Embedding pq.Float64Array        `json:"embedding" db:"embedding"`
+    Embedding pgvector.Vector        `json:"embedding" db:"embedding"`
     Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
 

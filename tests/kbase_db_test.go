@@ -6,7 +6,8 @@ import (
 	"rag-demo/types"
 	// "rag-demo/types"
 	"fmt"
-	"github.com/lib/pq"
+
+    "github.com/pgvector/pgvector-go"
 
 	"testing"
 	"github.com/google/uuid"
@@ -43,10 +44,15 @@ func TestKbaseTableGateway(t *testing.T) {
 
     // Register cleanup for testKbase before deferring pool.Close()
     defer func() {
+        pool, err := pgxpool.New(ctx, os.Getenv("POSTGRES_CONN_STRING"))
+        if err != nil {
+            t.Fatalf("Failed to connect to database: %v", err)
+        }
         _, err = pool.Exec(ctx, "DELETE FROM kbase WHERE uuid = $1", testKbase.ID)
         if err != nil {
             t.Logf("Failed to delete testKbase data: %v", err)
         }
+        pool.Close()
     }()
 
     // Now defer pool.Close() so it's called last
@@ -173,7 +179,7 @@ func TestKbaseEmbeddingTableGateway(t *testing.T) {
             KbaseID:   testKbase.ID,
             ChunkID:   1,
             Content:   "This is a test content chunk.",
-			Embedding: pq.Float64Array{0.1, 0.2, 0.3, 0.4}, // Example embedding vector
+			Embedding: pgvector.NewVector([]float32{1, 2, 3}),
             Metadata: map[string]interface{}{
                 "source": "test",
             },

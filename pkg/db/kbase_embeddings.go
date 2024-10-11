@@ -6,7 +6,8 @@ import (
     // "time"
 
     "rag-demo/types"
-
+    // "github.com/pgvector/pgvector-go"
+    // pgxvector "github.com/pgvector/pgvector-go/pgx"
     // "github.com/google/uuid"
     "github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,6 +27,7 @@ func (k *KbaseEmbeddingsTableGatewayImpl) CreateEmbedding(ctx context.Context, e
         return false, err
     }
 
+
     // Insert into the database
     _, err = k.Pool.Exec(ctx, `
         INSERT INTO kbase_embeddings (uuid, kbase_id, chunk_id, content, embedding, metadata)
@@ -35,7 +37,7 @@ func (k *KbaseEmbeddingsTableGatewayImpl) CreateEmbedding(ctx context.Context, e
         embedding.KbaseID,
         embedding.ChunkID,
         embedding.Content,
-        embedding.Embedding,
+        embedding.Embedding, // Now a pgvector.Vector
         metadataJSON,
     )
     if err != nil {

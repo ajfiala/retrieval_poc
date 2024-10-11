@@ -5,7 +5,9 @@ import (
     "encoding/json"
     "fmt"
     "github.com/google/uuid"
-    "github.com/lib/pq"
+
+    "github.com/pgvector/pgvector-go"
+    // "github.com/lib/pq"
     "rag-demo/pkg/index"
     "rag-demo/types"
 )
@@ -38,12 +40,16 @@ func (o *Orchestrator) ProcessAndStoreEmbeddings(ctx context.Context, docText ty
 
         // Parse the embedding output
         var embeddingResponse struct {
-            Embedding []float64 `json:"embedding"`
+            Embedding []float32 `json:"embedding"`
         }
+        
         err = json.Unmarshal(embeddingOutput.Body, &embeddingResponse)
         if err != nil {
             return fmt.Errorf("error unmarshaling embedding response: %w", err)
         }
+        
+        embeddingVec := pgvector.NewVector(embeddingResponse.Embedding)
+        
 
         // Create the embedding record
         embeddingRecord := types.KbaseEmbedding{
@@ -51,7 +57,7 @@ func (o *Orchestrator) ProcessAndStoreEmbeddings(ctx context.Context, docText ty
             KbaseID:   kbaseID,
             ChunkID:   i,
             Content:   chunk,
-            Embedding: pq.Float64Array(embeddingResponse.Embedding),
+            Embedding: embeddingVec,
             Metadata:  map[string]interface{}{"source": docText.Name},
         }
 

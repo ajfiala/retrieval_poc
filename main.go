@@ -22,6 +22,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
+	err = db.RegisterType()
+	if err != nil {
+		log.Fatalf("Error registering type: %v", err)
+	}
 	dbPool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_CONN_STRING"))
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)

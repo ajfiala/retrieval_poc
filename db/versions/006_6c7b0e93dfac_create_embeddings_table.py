@@ -10,6 +10,7 @@ from sqlalchemy.engine.reflection import Inspector
 from alembic import op
 from sqlalchemy import Column, Integer, String, DateTime, JSON, UUID, ForeignKey, FLOAT, ARRAY
 from sqlalchemy.sql import func
+from pgvector.sqlalchemy import Vector
 
 # revision identifiers, used by Alembic.
 revision: str = '6c7b0e93dfac'
@@ -21,6 +22,9 @@ def upgrade():
     conn = op.get_bind()
     inspector = Inspector.from_engine(conn)
 
+    # enable PGVector
+    op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+
     # Check if the 'app_config' table exists
     if 'kbase_embeddings' not in inspector.get_table_names():
         op.create_table(
@@ -29,8 +33,8 @@ def upgrade():
             Column('uuid', UUID, unique=True, nullable=False),
             Column('kbase_id', UUID, ForeignKey('kbase.uuid'), nullable=False),
             Column('chunk_id', Integer, nullable=False),
-            Column('content', String(2500), nullable=False),
-            Column('embedding', ARRAY(FLOAT), nullable=False),
+            Column('content', String(5000), nullable=False),
+            Column('embedding', Vector, nullable=False),
             Column('metadata', JSON, nullable=True),
             Column('created_at', DateTime, server_default=func.now()),
             Column('updated_at', DateTime, server_default=func.now())
