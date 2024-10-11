@@ -50,7 +50,6 @@ func (o *Orchestrator) ProcessAndStoreEmbeddings(ctx context.Context, docText ty
         
         embeddingVec := pgvector.NewVector(embeddingResponse.Embedding)
         
-
         // Create the embedding record
         embeddingRecord := types.KbaseEmbedding{
             UUID:      uuid.New(),

@@ -21,9 +21,7 @@ type S3Service struct {
 func NewS3Service() (*S3Service, error) {
 	// Load environment variables from .env file if present
 	if err := godotenv.Load("../.env"); err != nil {
-		// Handle error if .env file is not found
-		// For testing, we can set default environment variables
-		// fmt.Printf("Error loading .env file")
+		return nil, err
 	}
 
 	// Create a new S3 service
@@ -48,7 +46,6 @@ func (s *S3Service) CheckFileExists(ctx context.Context, bucket string, key stri
 	})
 
 	if err != nil {
-		// You might want to check if the error is specifically a "NotFound" error
 		return false, nil
 	}
 

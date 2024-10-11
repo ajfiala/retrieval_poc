@@ -18,12 +18,8 @@ type BedrockRuntimeService struct {
 func NewBedrockRuntimeService() (*BedrockRuntimeService, error) {
 	// Load environment variables from .env file if present
 	if err := godotenv.Load("../.env"); err != nil {
-		// Handle error if .env file is not found
-		// For testing, we can set default environment variables
-		// fmt.Printf("Error loading .env file")
 	}
 
-	// Create a new S3 service
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, err
