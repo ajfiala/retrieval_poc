@@ -1,145 +1,88 @@
 import React, { useState, useRef, useEffect } from 'react';
+import useChat from './lib/store';
+import { useShallow } from 'zustand/react/shallow';
+import Molecule from "@/assets/svg/molecule.svg"
+import Markdown from 'react-markdown';
 
 // ChatMessage component for individual messages
 const ChatMessage = ({ message, isUser }) => (
-  <div style={{ marginBottom: '10px', textAlign: isUser ? 'right' : 'left' }}>
-    <div
-      style={{
-        display: 'inline-block',
-        padding: '10px',
-        backgroundColor: isUser ? '#c0c0c0' : '#ffffff',
-        color: '#000000',
-        border: '1px solid #000',
-        fontFamily: 'Arial, sans-serif',
-      }}
-    >
-      {message}
+    <div >
+        {isUser ?
+            <div className='border bg-card rounded-full w-fit px-4 py-4 grid grid-cols-[40px_1fr] items-center gap-x-4'>
+                <img className='rounded-full w-[40px] h-[40px]' src="/avatar.png" alt="avatar" />
+                {message}
+            </div>
+
+            :
+
+            <div className='w-fit px-4 py-4 grid grid-cols-[40px_1fr] items-center gap-x-4'>
+                <div className='flex items-center justify-center w-[35px] h-[35px] rounded-xl' style={{ background: "linear-gradient(180deg, #8F00FF 0%, #FE00E4 100%)" }}>
+                    <Molecule />
+                </div>
+                <div className="prose dark:prose-invert break-words">
+                    <Markdown>
+                        {message}
+                    </Markdown>
+                </div>
+            </div>
+        }
     </div>
-  </div>
 );
 
 // Main App component
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const chatContainerRef = useRef(null);
+    const [input, setInput, messages, sendMessage, isThinking] = useChat(useShallow(state => [state.input, state.setInput, state.messages, state.sendMessage, state.isThinking]))
 
-  // Function to send message to /chat endpoint
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+    const chatContainerRef = useRef(null);
 
-    const userMessage = input.trim();
-    setMessages((prev) => [...prev, { text: userMessage, isUser: true }]);
-    setInput('');
-    setIsLoading(true);
+    // Scroll to bottom of chat when new messages are added
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
 
-    try {
-      const response = await fetch('/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
+    return (
+        <div className='relative min-h-screen min-w-screen bg-background'>
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+            <main className='flex w-full flex-col px-2'>
+                <div ref={chatContainerRef} className="w-full lg:w-[800px] mx-auto py-12 rounded-2xl sm:mt-12 flex flex-col gap-y-4">
 
-      const data = await response.json();
-      setMessages((prev) => [...prev, { text: data.response, isUser: false }]);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages((prev) => [
-        ...prev,
-        { text: 'Sorry, an error occurred. Please try again.', isUser: false },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+                    {messages.map((msg, index) => (
+                        <ChatMessage key={index} message={msg.text} isUser={msg.isUser} />
+                    ))}
+                    {isThinking && (
+                        <div style={{ textAlign: 'center', color: '#000000' }}>
+                            <p>Loading...</p>
+                        </div>
+                    )}
+                </div>
+            </main>
+            <footer className='fixed bottom-0 left-0 w-full flex items-center justify-center p-6'>
+                <div className='relative flex items-center w-full lg:w-[800px] h-[60px] rounded-2xl border'>
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                        placeholder="Type your message..."
+                        className='w-full h-full bg-input px-4 rounded-2xl'
 
-  // Scroll to bottom of chat when new messages are added
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
+                    />
+                    <button
+                        onClick={sendMessage}
+                        disabled={isThinking}
+                        className="text-primary absolute bottom-0 right-4 h-full hover:scale-110 transition-transform"
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: '#808080',
-        fontFamily: 'Arial, sans-serif',
-      }}
-    >
-      <header
-        style={{
-          backgroundColor: '#000080',
-          color: '#FFFFFF',
-          padding: '10px',
-          textAlign: 'center',
-        }}
-      >
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>RAG Chat Demo</h1>
-      </header>
-      <main style={{ flex: '1', overflow: 'hidden', padding: '10px' }}>
-        <div
-          ref={chatContainerRef}
-          style={{
-            height: '100%',
-            overflowY: 'auto',
-            border: '2px solid #000',
-            backgroundColor: '#FFFFFF',
-            padding: '10px',
-          }}
-        >
-          {messages.map((msg, index) => (
-            <ChatMessage key={index} message={msg.text} isUser={msg.isUser} />
-          ))}
-          {isLoading && (
-            <div style={{ textAlign: 'center', color: '#000000' }}>
-              <p>Loading...</p>
-            </div>
-          )}
+                    >
+                        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" clipRule="evenodd" d="M12.6892 15.8963L8.19193 14.3972C5.83872 13.6128 4.66211 13.2206 4.66211 12.4999C4.66211 11.7791 5.83872 11.3869 8.19193 10.6025L21.2051 6.26476C22.8609 5.71283 23.6888 5.43687 24.1258 5.87388C24.5628 6.3109 24.2869 7.1388 23.7349 8.79459L19.3972 21.8078L19.3972 21.8078C18.6128 24.161 18.2206 25.3376 17.4998 25.3376C16.7791 25.3376 16.3869 24.161 15.6025 21.8078L14.1034 17.3105L19.4569 11.957C19.8475 11.5664 19.8475 10.9333 19.4569 10.5427C19.0664 10.1522 18.4332 10.1522 18.0427 10.5427L12.6892 15.8963Z" fill="currentColor" />
+                        </svg>
+
+                    </button>
+
+                </div>
+            </footer>
         </div>
-      </main>
-      <footer style={{ backgroundColor: '#C0C0C0', padding: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Type your message..."
-            style={{
-              flex: '1',
-              padding: '5px',
-              marginRight: '5px',
-              border: '1px solid #000',
-              fontFamily: 'Arial, sans-serif',
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={isLoading}
-            style={{
-              backgroundColor: '#000080',
-              color: '#FFFFFF',
-              padding: '5px 10px',
-              border: '1px solid #000',
-              cursor: 'pointer',
-              fontFamily: 'Arial, sans-serif',
-            }}
-          >
-            Send
-          </button>
-        </div>
-      </footer>
-    </div>
-  );
+    );
 }
