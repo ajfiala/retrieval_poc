@@ -62,19 +62,19 @@ func TestEmbeddingOrchestrator(t *testing.T) {
 	}
 
 	// Register cleanup for testKbase and its embeddings
-	// defer func() {
-	// 	// First, delete from kbase_embeddings
-	// 	_, err := dbPool.Exec(context.Background(), "DELETE FROM kbase_embeddings WHERE kbase_id = $1", testKbase.ID)
-	// 	if err != nil {
-	// 		t.Logf("Failed to delete kbase_embeddings data: %v", err)
-	// 	}
+	defer func() {
+		// First, delete from kbase_embeddings
+		_, err := dbPool.Exec(context.Background(), "DELETE FROM kbase_embeddings WHERE kbase_id = $1", testKbase.ID)
+		if err != nil {
+			t.Logf("Failed to delete kbase_embeddings data: %v", err)
+		}
 
-	// 	// Then, delete from kbase
-	// 	_, err = dbPool.Exec(context.Background(), "DELETE FROM kbase WHERE uuid = $1", testKbase.ID)
-	// 	if err != nil {
-	// 		t.Logf("Failed to delete kbase data: %v", err)
-	// 	}
-	// }()
+		// Then, delete from kbase
+		_, err = dbPool.Exec(context.Background(), "DELETE FROM kbase WHERE uuid = $1", testKbase.ID)
+		if err != nil {
+			t.Logf("Failed to delete kbase data: %v", err)
+		}
+	}()
 
 	kbaseDbService.CreateKbase(context.Background(), testKbase)
 
