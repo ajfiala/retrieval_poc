@@ -20,6 +20,11 @@ func NewAssistantTableGateway(pool *pgxpool.Pool) types.AssistantTableGateway {
 }
 
 func (atg *AssistantTableGatewayImpl) CreateAssistant(ctx context.Context, assistant types.Assistant) (bool, error) {
+    configJSON, err := json.Marshal(assistant.Config)
+    if err != nil {
+        return false, fmt.Errorf("failed to marshal Config: %v", err)
+    }
+
     systemPromptsJSON, err := json.Marshal(assistant.SystemPrompts)
     if err != nil {
         return false, fmt.Errorf("failed to marshal SystemPrompts: %v", err)
@@ -30,38 +35,56 @@ func (atg *AssistantTableGatewayImpl) CreateAssistant(ctx context.Context, assis
         return false, fmt.Errorf("failed to marshal Metadata: %v", err)
     }
 
-    // Execute the SQL query with marshaled JSON
     _, err = atg.Pool.Exec(ctx,
-        `INSERT INTO assistant (uuid, name, model, type, system_prompts, metadata)
-         VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
-        assistant.ID,  assistant.Name, assistant.Model, assistant.Type, systemPromptsJSON, metadataJSON)
+        `INSERT INTO assistant (uuid, name, config, type, system_prompts, metadata)
+         VALUES ($1, $2, $3::jsonb, $4, $5::jsonb, $6::jsonb)`,
+        assistant.ID,  assistant.Name, configJSON, assistant.Type, systemPromptsJSON, metadataJSON)
     if err != nil {
         return false, err
     }
     return true, nil
 }
 
+
 func (atg *AssistantTableGatewayImpl) GetAssistant(ctx context.Context, assistantId uuid.UUID) (types.Assistant, error) {
-	var assistant types.Assistant
-	var systemPrompts string
-	var metadata string
-	err := atg.Pool.QueryRow(ctx, "SELECT uuid, name, model, type, system_prompts, metadata FROM assistant WHERE uuid = $1", assistantId).Scan(&assistant.ID, &assistant.Name, &assistant.Model, &assistant.Type, &systemPrompts, &metadata)
-	if err != nil {
-		return types.Assistant{}, err
-	}
+    var assistant types.Assistant
+    var systemPromptsJSON []byte
+    var metadataJSON []byte
+    var configJSON []byte
 
-	err = json.Unmarshal([]byte(systemPrompts), &assistant.SystemPrompts)
-	if err != nil {
-		return types.Assistant{}, fmt.Errorf("failed to unmarshal SystemPrompts: %v", err)
-	}
+    err := atg.Pool.QueryRow(ctx, "SELECT uuid, name, config, type, system_prompts, metadata FROM assistant WHERE uuid = $1", assistantId).Scan(
+        &assistant.ID,
+        &assistant.Name,
+        &configJSON,
+        &assistant.Type,
+        &systemPromptsJSON,
+        &metadataJSON,
+    )
+    if err != nil {
+        return types.Assistant{}, err
+    }
 
-	err = json.Unmarshal([]byte(metadata), &assistant.Metadata)
-	if err != nil {
-		return types.Assistant{}, fmt.Errorf("failed to unmarshal Metadata: %v", err)
-	}
+    // Unmarshal config
+    err = json.Unmarshal(configJSON, &assistant.Config)
+    if err != nil {
+        return types.Assistant{}, fmt.Errorf("failed to unmarshal Config: %v", err)
+    }
 
-	return assistant, nil
+    // Unmarshal system prompts
+    err = json.Unmarshal(systemPromptsJSON, &assistant.SystemPrompts)
+    if err != nil {
+        return types.Assistant{}, fmt.Errorf("failed to unmarshal SystemPrompts: %v", err)
+    }
+
+    // Unmarshal metadata
+    err = json.Unmarshal(metadataJSON, &assistant.Metadata)
+    if err != nil {
+        return types.Assistant{}, fmt.Errorf("failed to unmarshal Metadata: %v", err)
+    }
+
+    return assistant, nil
 }
+
 
 func (atg *AssistantTableGatewayImpl) UpdateAssistant(ctx context.Context, assistant types.Assistant) (bool, error) {
 	systemPromptsJSON, err := json.Marshal(assistant.SystemPrompts)
@@ -76,8 +99,8 @@ func (atg *AssistantTableGatewayImpl) UpdateAssistant(ctx context.Context, assis
 
 	// Execute the SQL query with marshaled JSON
 	_, err = atg.Pool.Exec(ctx,
-		`UPDATE assistant SET name = $2, model = $3, type = $4, system_prompts = $5::jsonb, metadata = $6::jsonb WHERE uuid = $1`,
-		assistant.ID,  assistant.Name, assistant.Model, assistant.Type, systemPromptsJSON, metadataJSON)
+		`UPDATE assistant SET name = $2, config = $3::jsonb, type = $4, system_prompts = $5::jsonb, metadata = $6::jsonb WHERE uuid = $1`,
+		assistant.ID,  assistant.Name, assistant.Config, assistant.Type, systemPromptsJSON, metadataJSON)
 	if err != nil {
 		return false, err
 	}
@@ -85,7 +108,7 @@ func (atg *AssistantTableGatewayImpl) UpdateAssistant(ctx context.Context, assis
 }
 
 func (atg *AssistantTableGatewayImpl) ListAssistants(ctx context.Context) (types.AssistantList, error) {
-    rows, err := atg.Pool.Query(ctx, "SELECT uuid, name, model, type, system_prompts, metadata FROM assistant")
+    rows, err := atg.Pool.Query(ctx, "SELECT uuid, name, config, type, system_prompts, metadata FROM assistant")
     if err != nil {
         return types.AssistantList{}, err
     }
@@ -94,24 +117,40 @@ func (atg *AssistantTableGatewayImpl) ListAssistants(ctx context.Context) (types
     var assistants []types.Assistant
     for rows.Next() {
         var assistant types.Assistant
-        var systemPrompts string
-        var metadata string
+        var systemPromptsJSON []byte
+        var metadataJSON []byte
+        var configJSON []byte
 
-        err := rows.Scan(&assistant.ID, &assistant.Name, &assistant.Model, &assistant.Type, &systemPrompts, &metadata)
+        err := rows.Scan(
+            &assistant.ID,
+            &assistant.Name,
+            &configJSON,
+            &assistant.Type,
+            &systemPromptsJSON,
+            &metadataJSON,
+        )
         if err != nil {
             return types.AssistantList{}, err
         }
 
-        assistant.SystemPrompts = systemPrompts
+        // Unmarshal config
+        err = json.Unmarshal(configJSON, &assistant.Config)
+        if err != nil {
+            return types.AssistantList{}, fmt.Errorf("failed to unmarshal Config: %v", err)
+        }
 
-        // Unmarshal metadata JSON string into assistant.Metadata
-        if metadata != "" {
-            var meta types.Metadata
-            err = json.Unmarshal([]byte(metadata), &meta)
+        // Unmarshal system prompts
+        err = json.Unmarshal(systemPromptsJSON, &assistant.SystemPrompts)
+        if err != nil {
+            return types.AssistantList{}, fmt.Errorf("failed to unmarshal SystemPrompts: %v", err)
+        }
+
+        // Unmarshal metadata
+        if len(metadataJSON) > 0 {
+            err = json.Unmarshal(metadataJSON, &assistant.Metadata)
             if err != nil {
-                return types.AssistantList{}, fmt.Errorf("failed to unmarshal metadata: %v", err)
+                return types.AssistantList{}, fmt.Errorf("failed to unmarshal Metadata: %v", err)
             }
-            assistant.Metadata = &meta
         }
 
         assistants = append(assistants, assistant)

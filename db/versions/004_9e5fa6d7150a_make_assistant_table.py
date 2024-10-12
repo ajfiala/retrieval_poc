@@ -30,12 +30,11 @@ def upgrade():
             Column('uuid', UUID, nullable=False, unique=True),                                                                                       
             Column('name', String(255), nullable=False, unique=True),                                                                                                       
             Column('type', String(255), nullable=False),
-            Column('model', String(255), nullable=False),
+            Column('config', JSON, nullable=False),
             Column('system_prompts', JSON, nullable=False),
             Column('metadata', JSON, nullable=True),
             Column('created_at', DateTime, server_default=func.now()),
             Column('updated_at', DateTime, server_default=func.now())
-
         )
         print("Table 'assistant' created successfully.")
     else:

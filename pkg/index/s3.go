@@ -53,7 +53,6 @@ func (s *S3Service) CheckFileExists(ctx context.Context, bucket string, key stri
 }
 
 func (s *S3Service) UploadFile(ctx context.Context, bucket string, key string, filename string) (types.Document, error) {
-
 	// Open the file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -73,7 +72,6 @@ func (s *S3Service) UploadFile(ctx context.Context, bucket string, key string, f
 		ObjectKey: *output.Key,
 		FileName: filename,
 	}
-
 
 	return res, nil
 }

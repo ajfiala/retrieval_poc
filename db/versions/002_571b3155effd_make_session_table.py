@@ -11,13 +11,11 @@ from alembic import op
 from sqlalchemy import BOOLEAN, CHAR, Column, ForeignKey, Integer, String, DateTime, UUID
 from sqlalchemy.sql import func
 
-
 # revision identifiers, used by Alembic.
 revision: str = '571b3155effd'
 down_revision: Union[str, None] = '6ab78259c9db'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 
 def upgrade():
     # Check if app_config table already exists

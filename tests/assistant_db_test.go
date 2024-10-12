@@ -41,7 +41,10 @@ func TestAssistantTableGateway(t *testing.T) {
 		ID:       uuid.New(),
 		Name:     "insurance assistant3",
 		Type:     "rag",
-		Model:    "anthropic.claude-3-5-sonnet-20240620-v1:0",
+		Config: types.Config{
+			Provider: "anthropic",
+			ModelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
+		},
 		SystemPrompts: 
 `You are an insurance manager for a large Thai insurance company.
 You are an expert on insurance products, rules, services, and policies. Users will
@@ -49,7 +52,7 @@ ask you questions about insurance products, rules, services, and policies. Respo
 using the provided context. If the question is general enough, you can provide a
 general answer. Otherwise, don't answer if you aren't sure or if the answer cannot be found
 in the provided context. In this case, direct the user to another source of information.`,
-		Metadata: &types.Metadata{
+		Metadata: types.Metadata{
 			Title:       "Insurance Assistant",
 			Description: "Assists users with insurance-related queries.",
 			Icon:        "insurance_icon.png",
@@ -83,8 +86,11 @@ in the provided context. In this case, direct the user to another source of info
 		if assistant.Type != testAssistant.Type {
 			t.Errorf("Expected Type %v, got %v", testAssistant.Type, assistant.Type)
 		}
-		if assistant.Model != testAssistant.Model {
-			t.Errorf("Expected Model %v, got %v", testAssistant.Model, assistant.Model)
+		if assistant.Config.Provider != testAssistant.Config.Provider {
+			t.Errorf("Expected Config.Provider %v, got %v", testAssistant.Config.Provider, assistant.Config.Provider)
+		}
+		if assistant.Config.ModelId != testAssistant.Config.ModelId {
+			t.Errorf("Expected Config.ModelId %v, got %v", testAssistant.Config.ModelId, assistant.Config.ModelId)
 		}
 		if assistant.SystemPrompts != testAssistant.SystemPrompts {
 			t.Errorf("Expected SystemPrompts %v, got %v", testAssistant.SystemPrompts, assistant.SystemPrompts)

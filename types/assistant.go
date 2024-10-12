@@ -13,15 +13,20 @@ type Metadata struct {
     Prompts     []string  `json:"prompts,omitempty"`
 }
 
+type Config struct {
+    Provider string `json:"provider"`
+    ModelId string `json:"model_id"`
+}
+
 // Assistant represents the Bedrock config for an llm assistant.
 type Assistant struct {
     ID            uuid.UUID         `json:"id"`
     Name          string            `json:"name"`     // Name of the assistant
-    Model         string            `json:"model"`    // Model used by the assistant
+    Config        Config            `json:"config"`   // Config for the assistant
     // KbaseID       *uuid.UUID        `json:"kbase_id,omitempty"`
     Type          string            `json:"type"` // Type of the assistant (e.g., travel_assistant, txt-to-sql)
     SystemPrompts string 			`json:"system_prompts"`
-    Metadata      *Metadata         `json:"metadata,omitempty"`
+    Metadata      Metadata         `json:"metadata"`
 }
 
 // AssistantList holds a collection of assistants.
