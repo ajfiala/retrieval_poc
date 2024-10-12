@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"rag-demo/pkg/auth"
-	"rag-demo/pkg/message"
+	"rag-demo/pkg/session"
 	"rag-demo/pkg/kbase"
 	"os"
 	"rag-demo/pkg/db"
@@ -42,7 +42,7 @@ func main() {
 	sessionGateway := db.NewSessionTableGateway(dbPool)
 
 	// Create session service
-	sessionService := message.NewSessionService(sessionGateway)
+	sessionService := session.NewSessionService(sessionGateway)
 
 	// create kbase service 
 	kbaseService := kbase.NewKbaseService(db.NewKbaseTableGateway(dbPool))
