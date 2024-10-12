@@ -5,7 +5,7 @@ import (
     "testing"
 	"sync"
     "rag-demo/pkg/db"
-    "rag-demo/pkg/message"
+    "rag-demo/pkg/session"
     "rag-demo/types"
 	"fmt"
     "github.com/google/uuid"
@@ -33,7 +33,7 @@ func TestSessionService_CreateSession(t *testing.T) {
     godotenv.Load("../.env")
 
     sessionGateway := db.NewSessionTableGateway(dbPool)
-    sessionService := message.NewSessionService(sessionGateway)
+    sessionService := session.NewSessionService(sessionGateway)
 
     userGateway := db.NewUserTableGateway(dbPool)
 
@@ -81,7 +81,7 @@ func TestSessionService_GetSession(t *testing.T) {
 	godotenv.Load("../.env")
 
 	sessionGateway := db.NewSessionTableGateway(dbPool)
-	sessionService := message.NewSessionService(sessionGateway)
+	sessionService := session.NewSessionService(sessionGateway)
 
 	userGateway := db.NewUserTableGateway(dbPool)
 

@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"rag-demo/pkg/message"
+	"rag-demo/pkg/session"
 	"rag-demo/types"
 	"sync"
 	// "strings"
@@ -13,7 +13,7 @@ import (
 )
 
 
-func HandleCreateSession(sessionService message.SessionService) http.HandlerFunc {
+func HandleCreateSession(sessionService session.SessionService) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var newSession types.NewSessionRequest
         err := decodeAndValidateJSON(r.Body, &newSession)

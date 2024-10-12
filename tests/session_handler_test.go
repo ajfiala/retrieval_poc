@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"rag-demo/pkg/db"
 	"rag-demo/pkg/handlers"
-	"rag-demo/pkg/message"
+	"rag-demo/pkg/session"
 	"rag-demo/types"
 	"testing"
 	"github.com/go-chi/chi/v5"
@@ -26,7 +26,7 @@ func TestCreateSessionHandler(t *testing.T) {
 
     userGateway := db.NewUserTableGateway(testDBPool)
     sessionGateway := db.NewSessionTableGateway(testDBPool)
-    sessionService := message.NewSessionService(sessionGateway)
+    sessionService := session.NewSessionService(sessionGateway)
 
     router.Post("/api/v1/session", handlers.HandleCreateSession(sessionService))
 
