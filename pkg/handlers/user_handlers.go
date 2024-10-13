@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"rag-demo/pkg/auth"
 	"rag-demo/types"
+    // "os"
 	"sync"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -44,8 +45,8 @@ func HandleCreateUser(authService auth.AuthService) http.HandlerFunc {
                 Name:     "access-token",
                 Value:    createUserResult.Token,
                 Path:     "/",
-                HttpOnly: true,
-                Secure:   true, 
+                HttpOnly: false,
+                Secure:   false, 
                 SameSite: http.SameSiteLaxMode,
             })
 

@@ -86,7 +86,7 @@ func TestInvokeModel(t *testing.T) {
 	// assert.Nil(t, err, "Error should be nil")
 	// assert.NotNil(t, output, "Output should not be nil")
 
-	bed, err := message.NewBedrockRuntimeService("a121")
+	bed, err := message.NewBedrockRuntimeService("anthropic")
 	if err != nil {
 		fmt.Printf("Error initializing Bedrock Runtime client: %v\n", err)
 		t.Fatalf("Error initializing Bedrock Runtime client: %v\n", err)

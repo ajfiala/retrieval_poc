@@ -29,12 +29,13 @@ func NewAuthService(userGateway types.UserTableGateway, sessionGateway types.Ses
 	secret := os.Getenv("JWT_SECRET")
     algorithm := os.Getenv("JWT_ALGORITHM")
 
+    // refactor to add better error handling 
     if secret == "" {
-        secret = "default_secret" // Use a default or handle error appropriately
+        return nil 
     }
 
     if algorithm == "" {
-        algorithm = "HS256" // Use a default or handle error appropriately
+        return nil
     }
 	tokenAuth := jwtauth.New(algorithm, []byte(secret), nil)
 	return &AuthServiceImpl{UserGateway: userGateway, SessionGateway: sessionGateway, tokenAuth: tokenAuth}

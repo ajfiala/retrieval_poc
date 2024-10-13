@@ -8,10 +8,8 @@ import (
 	// "rag-demo/types"
 	"fmt"
 	"testing"
-
 	"github.com/google/uuid"
 	"os"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -77,7 +75,7 @@ func TestMessageTableGateway(t *testing.T) {
 			AiMessage: "Hi",
 		}
 
-		success, err := messageGateway.StoreMessage(ctx, testMessage)
+		success, err := messageGateway.StoreMessage(ctx, testMessage, testSession)
 		if err != nil {
 			t.Fatalf("StoreMessage failed: %v", err)
 		}

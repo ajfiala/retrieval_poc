@@ -40,13 +40,15 @@ func (ms *MessageService) SendMessage(ctx context.Context,
             Error:   err,
             Success: false,
         }
-        return // Add return here
+        return 
     }
 
     message := types.Message{
         ID:          uuid.New(),
         UserMessage: req.Text,
         AiMessage:   aiResponse,
+        SessionId:   session.ID,
+        UserId:     session.UserID,
     }
 
     fmt.Println("message: ", message)
@@ -59,7 +61,7 @@ func (ms *MessageService) SendMessage(ctx context.Context,
             Error:   err,
             Success: false,
         }
-        return // Add return here
+        return
     }
     if !ok {
         resultCh <- types.Result{
@@ -67,7 +69,7 @@ func (ms *MessageService) SendMessage(ctx context.Context,
             Error:   nil,
             Success: false,
         }
-        return // Add return here
+        return 
     }
 
     resultCh <- types.Result{

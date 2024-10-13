@@ -5,7 +5,17 @@ meta {
 }
 
 post {
-  url: {{server}}/chat
+  url: {{server}}/message
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "inputText": "Hello, World!"
+  }
 }

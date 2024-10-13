@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"rag-demo/pkg/auth"
 	"rag-demo/pkg/session"
+	"rag-demo/pkg/message"
 	"rag-demo/pkg/kbase"
 	"os"
 	"rag-demo/pkg/db"
@@ -35,17 +36,31 @@ func main() {
 	// Create user gateway
 	userGateway := db.NewUserTableGateway(dbPool)
 
-	// Create auth service
-	authService := auth.NewAuthService(userGateway)
 
 	// Create session gateway
 	sessionGateway := db.NewSessionTableGateway(dbPool)
+
+	// Create auth service
+	authService := auth.NewAuthService(userGateway, sessionGateway)
+
 
 	// Create session service
 	sessionService := session.NewSessionService(sessionGateway)
 
 	// create kbase service 
 	kbaseService := kbase.NewKbaseService(db.NewKbaseTableGateway(dbPool))
+
+	// create bedrock runtime service 
+	
+
+	// TO DO: fix to make the provider selection dynamic. Should be a part of the assistant configuration
+	bedrockService, err := message.NewBedrockRuntimeService("anthropic")
+	if err != nil {
+		log.Fatalf("Error creating bedrock runtime service: %v", err)
+	}
+
+	// create message service
+	messageService := message.NewMessageService(db.NewMessageTableGateway(dbPool), bedrockService)
 
 	// Set up router
 	r := chi.NewRouter()
@@ -63,6 +78,7 @@ func main() {
 	r.Post("/api/v1/kbase", handlers.HandleCreateKbase(kbaseService))
 	r.Get("/api/v1/kbase", handlers.HandleListKbases(kbaseService))
 	r.Delete("/api/v1/kbase/{id}", handlers.HandleDeleteKbase(kbaseService))
+	r.Post("/api/v1/message", handlers.HandleSendMessage(authService.(*auth.AuthServiceImpl), messageService))
 
 	// Start the server
 	log.Println("Server starting on :8080")
