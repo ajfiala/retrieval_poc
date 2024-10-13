@@ -68,9 +68,10 @@ func (as *AuthServiceImpl) ValidateJWT(ctx context.Context, tokenString string) 
 	// Retrieve the user from the database using the existing UserGateway
 	session, err := as.SessionGateway.GetSession(ctx, parsedSessionID)
 	if err != nil {
-		fmt.Println("sessionID: ", parsedSessionID)
+		fmt.Printf("failed to retrieve sessionID: %s ", parsedSessionID)
+		fmt.Println("with userID: ", userIDStr)
 		fmt.Println("Error retrieving user from database:", err)
-		return types.Session{}, errors.New("user not found in database")
+		return types.Session{}, errors.New("session not found in database")
 	}
 
 	// Create a new session object

@@ -69,8 +69,6 @@ func TestInvokeModel(t *testing.T) {
 
 	// test messageRequest
 	msg := types.MessageRequest{
-		SessionId: testSession.ID,
-		UserId: testUser.UserID,
 		Text: "Hello, this is a test message",
 	}
 
@@ -95,8 +93,9 @@ func TestInvokeModel(t *testing.T) {
 	}
 
 	// Invoke the model
-	err = bed.InvokeModel(ctx, msg)
+	res, err := bed.InvokeModel(ctx, msg)
 
+	fmt.Printf("Invoke Bedrock output: %+v\n", res)
 	// fmt.Printf("Invoke Bedrock output: %+v\n", output.GetStream().Reader)
 
 	assert.Nil(t, err, "Error should be nil")

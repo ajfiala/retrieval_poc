@@ -23,7 +23,7 @@ type MessageList struct {
 }
 
 type MessageTableGateway interface {
-	StoreMessage(ctx context.Context, message Message) (bool, error)
+	StoreMessage(ctx context.Context, message Message, session Session) (bool, error)
 	RetrieveMessages(ctx context.Context, sessionID uuid.UUID) (MessageList, error)
 }
 

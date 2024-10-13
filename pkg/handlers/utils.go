@@ -5,6 +5,10 @@ import(
 	"fmt"
 	"io"
 	"github.com/go-playground/validator/v10"
+    // "rag-demo/pkg/db"
+    "context"
+    "rag-demo/pkg/auth"
+    "rag-demo/types"
 	"net/http"
 	"strings"
 	"errors"
@@ -47,4 +51,15 @@ func ExtractAccessToken(r *http.Request) (string, error) {
 
     // Token not found in both header and cookies
     return "", errors.New("no access-token provided")
+}
+
+// Remove the creation of AuthService here
+func GetSession(authService *auth.AuthServiceImpl, accessToken string) (types.Session, error) {
+    // Retrieve the session from the access token
+    session, err := authService.ValidateJWT(context.Background(), accessToken)
+    if err != nil {
+        return types.Session{}, err
+    }
+
+    return session, nil
 }

@@ -20,10 +20,12 @@ func NewUserTableGateway(pool *pgxpool.Pool) types.UserTableGateway {
 
 // CreateUser inserts a new user into the database.
 func (utg *UserTableGatewayImpl) CreateUser(ctx context.Context, user types.User) (bool, error) {
+    fmt.Println("Creating user: ", user)
 	_, err := utg.Pool.Exec(ctx, "INSERT INTO users (uuid, name, active) VALUES ($1, $2, $3)", user.UserID, user.Name, true)
 	if err != nil {
 		return false, err
 	}
+    fmt.Println("User created: ", user)
 	return true, nil
 }
 
