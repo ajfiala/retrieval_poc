@@ -5,6 +5,7 @@ import (
 	"rag-demo/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"fmt"
 )
 
 // UserTableGatewayImpl is the implementation of UserTableGateway using pgxpool.
@@ -39,12 +40,33 @@ func (utg *UserTableGatewayImpl) GetUser(ctx context.Context, userID uuid.UUID) 
 
 // DeleteUser removes a user by userID.
 func (utg *UserTableGatewayImpl) DeleteUser(ctx context.Context, userID uuid.UUID) (bool, error) {
-	commandTag, err := utg.Pool.Exec(ctx, "DELETE FROM users WHERE uuid = $1", userID)
-	if err != nil {
-		return false, err
-	}
-	if commandTag.RowsAffected() == 0 {
-		return false, nil // No rows deleted
-	}
-	return true, nil
+    // Start a transaction
+    tx, err := utg.Pool.Begin(ctx)
+    if err != nil {
+        return false, fmt.Errorf("failed to begin transaction: %w", err)
+    }
+    defer tx.Rollback(ctx)
+
+    // Delete sessions associated with the user
+    _, err = tx.Exec(ctx, "DELETE FROM session WHERE user_id = $1", userID)
+    if err != nil {
+        return false, fmt.Errorf("failed to delete associated sessions: %w", err)
+    }
+
+    // Delete the user
+    commandTag, err := tx.Exec(ctx, "DELETE FROM users WHERE uuid = $1", userID)
+    if err != nil {
+        return false, fmt.Errorf("failed to delete user: %w", err)
+    }
+
+    err = tx.Commit(ctx)
+    if err != nil {
+        return false, fmt.Errorf("failed to commit transaction: %w", err)
+    }
+
+    if commandTag.RowsAffected() == 0 {
+        return false, nil 
+    }
+    
+    return true, nil
 }

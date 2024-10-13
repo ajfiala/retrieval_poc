@@ -11,54 +11,49 @@ import (
 )
 
 
+// In handlers/user_handlers.go
 func HandleCreateUser(authService auth.AuthService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var newUser types.NewUserRequest
-		err := decodeAndValidateJSON(r.Body, &newUser)
-		if err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
-			return
-		}
+    return func(w http.ResponseWriter, r *http.Request) {
+        var newUser types.NewUserRequest
+        err := decodeAndValidateJSON(r.Body, &newUser)
+        if err != nil {
+            http.Error(w, "Invalid request body", http.StatusBadRequest)
+            return
+        }
 
-		resultCh := make(types.ResultChannel)
-		wg := &sync.WaitGroup{}
-		wg.Add(1)
+        resultCh := make(types.ResultChannel)
+        wg := &sync.WaitGroup{}
+        wg.Add(1)
 
-		go authService.CreateUser(r.Context(), newUser.Name, resultCh, wg)
+        go authService.CreateUser(r.Context(), newUser.Name, resultCh, wg)
 
-		result := <-resultCh
-		wg.Wait()
+        result := <-resultCh
+        wg.Wait()
 
-		if result.Success {
-			user, ok := result.Data.(types.User)
-			if !ok {
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
-				return
-			}
-			token, err := authService.GenerateJWT(r.Context(), user)
-			if err != nil {
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
-				return
-			}
+        if result.Success {
+            createUserResult, ok := result.Data.(types.CreateUserResult)
+            if !ok {
+                http.Error(w, "Internal server error", http.StatusInternalServerError)
+                return
+            }
 
-
-			w.Header().Set("Content-Type", "application/json")
-			w.Header().Set("access-token", "Bearer "+ token)
+            w.Header().Set("Content-Type", "application/json")
+            w.Header().Set("access-token", "Bearer "+ createUserResult.Token)
 
             http.SetCookie(w, &http.Cookie{
                 Name:     "access-token",
-                Value:    token,
+                Value:    createUserResult.Token,
                 Path:     "/",
                 HttpOnly: true,
                 Secure:   true, 
                 SameSite: http.SameSiteLaxMode,
             })
 
-			json.NewEncoder(w).Encode(user)
-		} else {
-			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
-		}
-	}
+            json.NewEncoder(w).Encode(createUserResult.User)
+        } else {
+            http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+        }
+    }
 }
 
 func HandleGetUser(authService auth.AuthService) http.HandlerFunc {

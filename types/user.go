@@ -24,3 +24,9 @@ type UserTableGateway interface {
 	GetUser(ctx context.Context, userID uuid.UUID) (User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) (bool, error)
 }
+
+// In types/types.go
+type CreateUserResult struct {
+    User  User
+    Token string
+}

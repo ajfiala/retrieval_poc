@@ -62,7 +62,8 @@ func TestCreateUser(t *testing.T) {
     resultCh := make(types.ResultChannel)
 
     userGateway := db.NewUserTableGateway(testDBPool)
-    authService := auth.NewAuthService(userGateway)
+    sessionGateway := db.NewSessionTableGateway(testDBPool)
+    authService := auth.NewAuthService(userGateway, sessionGateway)
 
     wg.Add(1)
     go authService.CreateUser(ctx, "testuser", resultCh, &wg)
@@ -74,17 +75,17 @@ func TestCreateUser(t *testing.T) {
         t.Errorf("CreateUser operation failed: %v", result.Error)
     }
 
-    user, ok := result.Data.(types.User)
+    user, ok := result.Data.(types.CreateUserResult)
     if !ok {
         t.Errorf("Result data is not of type User")
     }
 
-    if user.UserID == uuid.Nil {
-        t.Errorf("CreateUser returned User with invalid UserID: got %v", user.UserID)
+    if user.User.UserID == uuid.Nil {
+        t.Errorf("CreateUser returned User with invalid UserID: got %v", user.User.UserID)
     }
 
     // Clean up: delete the created user
-    _, err = userGateway.DeleteUser(ctx, user.UserID)
+    _, err = userGateway.DeleteUser(ctx, user.User.UserID)
     if err != nil {
         t.Errorf("Failed to delete test user: %v", err)
     }
@@ -99,7 +100,8 @@ func TestGetUser(t *testing.T) {
     defer testDBPool.Close()
 
     userGateway := db.NewUserTableGateway(testDBPool)
-    authService := auth.NewAuthService(userGateway)
+    sessionGateway := db.NewSessionTableGateway(testDBPool)
+    authService := auth.NewAuthService(userGateway, sessionGateway)
 
     newUser := types.User{
         UserID: uuid.New(),
@@ -149,7 +151,8 @@ func TestCreateUserHandler(t *testing.T) {
     defer testDBPool.Close()
 
     userGateway := db.NewUserTableGateway(testDBPool)
-    authService := auth.NewAuthService(userGateway)
+    sessionGateway := db.NewSessionTableGateway(testDBPool)
+    authService := auth.NewAuthService(userGateway, sessionGateway)
 
     router.Post("/api/v1/user", handlers.HandleCreateUser(authService))
 
@@ -214,32 +217,54 @@ func TestCreateUserHandler(t *testing.T) {
 }
 
 func TestGetUserHandler(t *testing.T) {
+    ctx := context.Background()
     router := chi.NewRouter()
-    testDBPool, err := pgxpool.New(context.Background(), "postgresql://myuser:mypassword@localhost:5432/goragdb")
+    testDBPool, err := pgxpool.New(ctx, "postgresql://myuser:mypassword@localhost:5432/goragdb")
     if err != nil {
         t.Fatalf("Failed to connect to database: %v", err)
     }
     defer testDBPool.Close()
 
     userGateway := db.NewUserTableGateway(testDBPool)
-    authService := auth.NewAuthService(userGateway)
+    sessionGateway := db.NewSessionTableGateway(testDBPool)
+    authService := auth.NewAuthService(userGateway, sessionGateway)
 
     router.Get("/api/v1/user/{userID}", handlers.HandleGetUser(authService))
 
+    // Create a new user
     newUser := types.User{
         UserID: uuid.New(),
         Name:   "testuser",
     }
 
-    _, err = userGateway.CreateUser(context.Background(), newUser)
+    _, err = userGateway.CreateUser(ctx, newUser)
     if err != nil {
-        t.Errorf("Failed to create test user: %v", err)
+        t.Fatalf("Failed to create test user: %v", err)
     }
 
+    // Create a new session for the user
+    newSession := types.Session{
+        ID:     uuid.New(),
+        UserID: newUser.UserID,
+    }
+
+    _, err = sessionGateway.CreateSession(ctx, newSession)
+    if err != nil {
+        t.Fatalf("Failed to create test session: %v", err)
+    }
+
+    // Generate JWT token
+    token, err := authService.GenerateJWT(ctx, newSession)
+    if err != nil {
+        t.Fatalf("Failed to generate JWT token: %v", err)
+    }
+
+    // Create request with JWT token in header
     req, err := http.NewRequest("GET", "/api/v1/user/"+newUser.UserID.String(), nil)
     if err != nil {
         t.Fatal(err)
     }
+    req.Header.Set("Authorization", "Bearer "+token)
 
     rr := httptest.NewRecorder()
     router.ServeHTTP(rr, req)
@@ -262,11 +287,12 @@ func TestGetUserHandler(t *testing.T) {
         t.Errorf("Fetched user has incorrect name: got %v, want %v", fetchedUser.Name, newUser.Name)
     }
 
-    // Clean up: delete the created user
-    _, err = userGateway.DeleteUser(context.Background(), newUser.UserID)
+    // Clean up: delete the created user and session
+    _, err = userGateway.DeleteUser(ctx, newUser.UserID)
     if err != nil {
         t.Errorf("Failed to delete test user: %v", err)
     }
+
 }
 
 func TestValidateJWT(t *testing.T) {
@@ -278,13 +304,16 @@ func TestValidateJWT(t *testing.T) {
     defer testDBPool.Close()
 
     userGateway := db.NewUserTableGateway(testDBPool)
-    authService := auth.NewAuthService(userGateway)
+    sessionGateway := db.NewSessionTableGateway(testDBPool)
+    authService := auth.NewAuthService(userGateway, sessionGateway)
 
     // Create a test user
     testUser := types.User{
         UserID: uuid.New(),
         Name:   "testuser",
     }
+
+
 
     // Insert the test user into the database
     success, err := userGateway.CreateUser(ctx, testUser)
@@ -299,24 +328,36 @@ func TestValidateJWT(t *testing.T) {
         }
     }()
 
+    // create a test session
+    testSession := types.Session{
+        ID:     uuid.New(),
+        UserID: testUser.UserID,
+    }
+
+    // Insert the test session into the database
+    success, err = sessionGateway.CreateSession(ctx, testSession)
+    if err != nil || !success {
+        t.Fatalf("Failed to create test session: %v", err)
+    }
+
     // Generate JWT token for the test user
-    token, err := authService.GenerateJWT(ctx, testUser)
+    token, err := authService.GenerateJWT(ctx, testSession)
     if err != nil {
         t.Fatalf("Failed to generate JWT: %v", err)
     }
 
     // Test ValidateJWT function
-    validatedUser, err := authService.ValidateJWT(ctx, token)
+    validatedSession, err := authService.ValidateJWT(ctx, token)
     if err != nil {
         t.Errorf("ValidateJWT failed: %v", err)
     }
 
-    if validatedUser.UserID != testUser.UserID {
-        t.Errorf("Expected UserID %v, got %v", testUser.UserID, validatedUser.UserID)
+    if validatedSession.UserID != testUser.UserID {
+        t.Errorf("Expected UserID %v, got %v", testUser.UserID, validatedSession.UserID)
     }
 
-    if validatedUser.Name != testUser.Name {
-        t.Errorf("Expected Name %v, got %v", testUser.Name, validatedUser.Name)
+    if validatedSession.ID != testSession.ID {
+        t.Errorf("Expected Name %v, got %v", testSession.ID, validatedSession.ID)
     }
 
     // Now delete the user from the database

@@ -6,6 +6,12 @@ meta {
 
 delete {
   url: {{server}}/kbase
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "kbase_id": ""
+  }
 }

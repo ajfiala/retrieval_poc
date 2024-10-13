@@ -25,7 +25,7 @@ func (p A121Provider) BuildRequest(message types.MessageRequest) ([]byte, error)
     return json.Marshal(requestData)
 }
 
-func (p A121Provider) ProcessResponse(output *bedrockruntime.InvokeModelWithResponseStreamOutput) error {
+func (p A121Provider) ProcessResponse(output *bedrockruntime.InvokeModelWithResponseStreamOutput) (string, error) {
     var combinedResult string
     for event := range output.GetStream().Events() {
         switch v := event.(type) {
@@ -57,7 +57,5 @@ func (p A121Provider) ProcessResponse(output *bedrockruntime.InvokeModelWithResp
             fmt.Println("union is nil or unknown type")
         }
     }
-    // Optionally, print the combined result
-    // fmt.Println("\nCombined result:", combinedResult)
-    return nil
+    return combinedResult, nil
 }

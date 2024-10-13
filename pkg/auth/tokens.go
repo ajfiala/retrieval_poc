@@ -4,17 +4,16 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"context"
 	"fmt"
-	
 	"rag-demo/types"
 	"github.com/google/uuid"
 	"errors"
 )
 
 
-func (as *AuthServiceImpl) GenerateJWT(ctx context.Context, user types.User) (string, error) {
+func (as *AuthServiceImpl) GenerateJWT(ctx context.Context, session types.Session) (string, error) {
     claims := map[string]interface{}{
-        "userID": user.UserID.String(),
-        "name":   user.Name,
+        "userID": session.UserID.String(),
+        "sessionID":   session.ID.String(),
     }
     _, tokenString, err := as.tokenAuth.Encode(claims)
     if err != nil {
@@ -22,45 +21,63 @@ func (as *AuthServiceImpl) GenerateJWT(ctx context.Context, user types.User) (st
     }
     return tokenString, nil
 }
-func (as *AuthServiceImpl) ValidateJWT(ctx context.Context, tokenString string) (types.User, error) {
+func (as *AuthServiceImpl) ValidateJWT(ctx context.Context, tokenString string) (types.Session, error) {
 	token, err := jwtauth.VerifyToken(as.tokenAuth, tokenString)
 	if err != nil {
 		fmt.Println("Error verifying token:", err)
-		return types.User{}, err
+		return types.Session{}, err
 	}
 
 	if token == nil {
 		fmt.Println("Error: invalid token")
-		return types.User{}, errors.New("invalid token")
+		return types.Session{}, errors.New("invalid token")
 	}
 
 	// Extract claims from the token
 	claims, err := token.AsMap(ctx)
 	if err != nil {
 		fmt.Println("Error extracting claims from token:", err)
-		return types.User{}, err
+		return types.Session{}, err
 	}
 
 	userIDStr, ok := claims["userID"].(string)
 	if !ok {
 		fmt.Println("Error: invalid user ID in token")
-		return types.User{}, errors.New("invalid user ID in token")
+		return types.Session{}, errors.New("invalid user ID in token")
+	}
+
+	sessionIDStr, ok := claims["sessionID"].(string)
+	if !ok {
+		fmt.Println("Error: invalid session ID in token")
+		return types.Session{}, errors.New("invalid session ID in token")
 	}
 
 	// Parse the userID to a UUID
-	parsedUserID, err := uuid.Parse(userIDStr)
+	_, err = uuid.Parse(userIDStr)
 	if err != nil {
 		fmt.Println("Error parsing user ID:", err)
-		return types.User{}, errors.New("invalid user ID format")
+		return types.Session{}, errors.New("invalid user ID format")
+	}
+
+	parsedSessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		fmt.Println("Error parsing session ID:", err)
+		return types.Session{}, errors.New("invalid session ID format")
 	}
 
 	// Retrieve the user from the database using the existing UserGateway
-	user, err := as.UserGateway.GetUser(ctx, parsedUserID)
+	session, err := as.SessionGateway.GetSession(ctx, parsedSessionID)
 	if err != nil {
-		fmt.Println("userID: ", parsedUserID)
+		fmt.Println("sessionID: ", parsedSessionID)
 		fmt.Println("Error retrieving user from database:", err)
-		return types.User{}, errors.New("user not found in database")
+		return types.Session{}, errors.New("user not found in database")
 	}
 
-	return user, nil
+	// Create a new session object
+	// session := types.Session{
+	// 	ID:     parsedSessionID,
+	// 	UserID: parsedUserID,
+	// }
+
+	return session, nil
 }

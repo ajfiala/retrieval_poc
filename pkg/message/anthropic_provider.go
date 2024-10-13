@@ -30,7 +30,7 @@ func (p AnthropicProvider) BuildRequest(message types.MessageRequest) ([]byte, e
     return json.Marshal(requestData)
 }
 
-func (p AnthropicProvider) ProcessResponse(output *bedrockruntime.InvokeModelWithResponseStreamOutput) error {
+func (p AnthropicProvider) ProcessResponse(output *bedrockruntime.InvokeModelWithResponseStreamOutput) (string, error) {
     var combinedResult string
     for event := range output.GetStream().Events() {
         switch v := event.(type) {
@@ -57,5 +57,5 @@ func (p AnthropicProvider) ProcessResponse(output *bedrockruntime.InvokeModelWit
             fmt.Println("union is nil or unknown type")
         }
     }
-    return nil
+    return combinedResult, nil
 }

@@ -16,8 +16,6 @@ type Message struct {
 // for sending messages to the AWS Bedrock InvokeModel endpoint
 type MessageRequest struct {
 	Text string `json:"inputText"`
-	SessionId uuid.UUID `json:"session_id"`
-	UserId uuid.UUID `json:"user_id"`
 }
 
 type MessageList struct {
