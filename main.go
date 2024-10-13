@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"rag-demo/pkg/auth"
 	"rag-demo/pkg/session"
+	"rag-demo/pkg/assistant"
 	"rag-demo/pkg/message"
 	"rag-demo/pkg/kbase"
 	"os"
@@ -36,6 +37,8 @@ func main() {
 	// Create user gateway
 	userGateway := db.NewUserTableGateway(dbPool)
 
+	// create assistant gateway 
+	assistantGateway := db.NewAssistantTableGateway(dbPool)
 
 	// Create session gateway
 	sessionGateway := db.NewSessionTableGateway(dbPool)
@@ -43,7 +46,8 @@ func main() {
 	// Create auth service
 	authService := auth.NewAuthService(userGateway, sessionGateway)
 
-
+	// createa assistant service 
+	assistantService := assistant.NewAssistantService(assistantGateway)
 	// Create session service
 	sessionService := session.NewSessionService(sessionGateway)
 
@@ -77,6 +81,8 @@ func main() {
 	r.Post("/api/v1/session", handlers.HandleCreateSession(sessionService))
 	r.Post("/api/v1/kbase", handlers.HandleCreateKbase(kbaseService))
 	r.Get("/api/v1/kbase", handlers.HandleListKbases(kbaseService))
+	r.Post("/api/v1/assistant", handlers.HandleCreateAssistant(authService.(*auth.AuthServiceImpl), assistantService))
+	r.Get("/api/v1/assistant", handlers.HandleListAssistants(authService.(*auth.AuthServiceImpl), assistantService))
 	r.Delete("/api/v1/kbase/{id}", handlers.HandleDeleteKbase(kbaseService))
 	r.Post("/api/v1/message", handlers.HandleSendMessage(authService.(*auth.AuthServiceImpl), messageService))
 

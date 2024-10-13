@@ -72,19 +72,6 @@ func TestInvokeModel(t *testing.T) {
 		Text: "Hello, this is a test message",
 	}
 
-	// bed, err := message.NewBedrockRuntimeService("anthropic")
-	// if err != nil {
-	// 	fmt.Printf("Error initializing Bedrock Runtime client: %v\n", err)
-	// 	t.Fatalf("Error initializing Bedrock Runtime client: %v\n", err)
-	// }
-
-	// // Invoke the model
-	// err = bed.InvokeModel(ctx, msg)
-
-	// // fmt.Printf("Invoke Bedrock output: %+v\n", output.GetStream().Reader)
-
-	// assert.Nil(t, err, "Error should be nil")
-	// assert.NotNil(t, output, "Output should not be nil")
 
 	bed, err := message.NewBedrockRuntimeService("anthropic")
 	if err != nil {

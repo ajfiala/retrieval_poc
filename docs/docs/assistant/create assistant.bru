@@ -5,7 +5,33 @@ meta {
 }
 
 post {
-  url: 
-  body: none
-  auth: none
+  url: {{server}}/assistant
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "insurance assistant4",
+    "type": "rag",
+    "config": {
+      "provider": "anthropic",
+      "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    },
+    "systemPrompts": "You are an insurance manager for a large Thai insurance company. You are an expert on insurance products, rules, services, and policies. Users will ask you questions about insurance products, rules, services, and policies. Respond using the provided context. If the question is general enough, you can provide a general answer. Otherwise, don't answer if you aren't sure or if the answer cannot be found in the provided context. In this case, direct the user to another source of information.",
+    "metadata": {
+      "title": "Insurance Assistant",
+      "description": "Assists users with insurance-related queries.",
+      "icon": "insurance_icon.png",
+      "prompts": [
+        "How can I assist you with insurance today?",
+        "How do I file a claim?",
+        "What is the process for renewing my policy?"
+      ]
+    }
+  }
 }

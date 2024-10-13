@@ -20,7 +20,7 @@ type Config struct {
 
 // Assistant represents the Bedrock config for an llm assistant.
 type Assistant struct {
-    ID            uuid.UUID         `json:"id"`
+    ID            uuid.UUID         `json:"id,omitempty"` // Unique identifier for the assistant
     Name          string            `json:"name"`     // Name of the assistant
     Config        Config            `json:"config"`   // Config for the assistant
     // KbaseID       *uuid.UUID        `json:"kbase_id,omitempty"`
